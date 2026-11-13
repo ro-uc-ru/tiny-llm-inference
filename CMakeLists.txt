@@ -54,7 +54,8 @@ target_compile_options(tiny_llm_warnings INTERFACE
 # --- The engine library -------------------------------------------------------------------
 
 add_library(tiny_llm
-    src/version.cpp)
+    src/version.cpp
+    src/config.cpp)
 
 # PUBLIC: our own sources and anyone who links tiny_llm can #include <tiny_llm/...>.
 target_include_directories(tiny_llm PUBLIC include)
@@ -82,7 +83,8 @@ if(ENGINE_BUILD_TESTS)
     FetchContent_MakeAvailable(googletest)
 
     add_executable(tiny_llm_tests
-        tests/version_test.cpp)
+        tests/version_test.cpp
+        tests/config_test.cpp)
 
     # gtest_main provides main(); the test files only hold TEST(...) blocks.
     target_link_libraries(tiny_llm_tests PRIVATE tiny_llm tiny_llm_warnings GTest::gtest_main)
