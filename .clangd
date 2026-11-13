@@ -1,0 +1,20 @@
+# Editor side of the warning policy. The flags must match tiny_llm_warnings in
+# CMakeLists.txt, so clangd underlines exactly what the compiler would reject.
+CompileFlags:
+  # Where CMake writes compile_commands.json for the development preset.
+  CompilationDatabase: build/debug-asan
+  Add:
+    - -xc++
+    - -std=c++23
+    - -Wall
+    - -Wextra
+    - -Wpedantic
+    - -Werror
+    - -Wshadow
+    - -Wconversion
+    - -Wsign-conversion
+    - -Wold-style-cast
+    - -Wnon-virtual-dtor
+    - -Woverloaded-virtual
+Diagnostics:
+  UnusedIncludes: Strict
