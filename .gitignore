@@ -1,0 +1,14 @@
+# Build trees (recreated by the CMake presets)
+build/
+out/
+
+# clangd index and compile database symlink
+.cache/
+compile_commands.json
+
+# Model weights and tokenizer files are never versioned
+*.bin
+*.gguf
+
+# macOS
+.DS_Store
