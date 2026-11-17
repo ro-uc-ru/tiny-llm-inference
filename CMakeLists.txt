@@ -49,14 +49,16 @@ target_compile_options(tiny_llm_warnings INTERFACE
     -Wconversion -Wsign-conversion
     -Wold-style-cast
     -Wnon-virtual-dtor
-    -Woverloaded-virtual)
+    -Woverloaded-virtual
+    -Wdocumentation)  # Doxygen comments: @param names must match the parameters
 
 # --- The engine library -------------------------------------------------------------------
 
 add_library(tiny_llm
     src/version.cpp
     src/config.cpp
-    src/mapped_file.cpp)
+    src/mapped_file.cpp
+    src/check.cpp)
 
 # PUBLIC: our own sources and anyone who links tiny_llm can #include <tiny_llm/...>.
 target_include_directories(tiny_llm PUBLIC include)
@@ -65,6 +67,14 @@ target_include_directories(tiny_llm PUBLIC include)
 target_compile_definitions(tiny_llm PRIVATE TINY_LLM_VERSION="${PROJECT_VERSION}")
 
 target_link_libraries(tiny_llm PRIVATE tiny_llm_warnings)
+
+# --- The command-line program -------------------------------------------------------------
+
+# The target needs its own name (tiny_llm is the library), but the binary is still called
+# tiny_llm: the library file is libtiny_llm.a, so they do not collide.
+add_executable(tiny_llm_cli apps/tiny_llm.cpp)
+set_target_properties(tiny_llm_cli PROPERTIES OUTPUT_NAME tiny_llm)
+target_link_libraries(tiny_llm_cli PRIVATE tiny_llm tiny_llm_warnings)
 
 # --- Tests --------------------------------------------------------------------------------
 
@@ -86,7 +96,8 @@ if(ENGINE_BUILD_TESTS)
     add_executable(tiny_llm_tests
         tests/version_test.cpp
         tests/config_test.cpp
-        tests/mapped_file_test.cpp)
+        tests/mapped_file_test.cpp
+        tests/check_test.cpp)
 
     # gtest_main provides main(); the test files only hold TEST(...) blocks.
     target_link_libraries(tiny_llm_tests PRIVATE tiny_llm tiny_llm_warnings GTest::gtest_main)

@@ -1,11 +1,11 @@
 #include <tiny_llm/config.hpp>
+#include <tiny_llm/load_error.hpp>
 
 #include <gtest/gtest.h>
 
 #include <array>
 #include <cstdint>
 #include <span>
-#include <stdexcept>
 
 namespace {
 constexpr std::array<std::int32_t, 7> stories110M_header{768, 2048, 12, 12, 12, 32000, 1024};
@@ -38,7 +38,7 @@ TEST(ConfigTest, RejectsTruncatedHeader) {
     const auto header_bytes = std::as_bytes(std::span{stories110M_header});
 
     EXPECT_THROW(static_cast<void>(tiny_llm::parse_config(header_bytes.first(10))),
-                 std::runtime_error);
+                 tiny_llm::LoadError);
 }
 
 TEST(ConfigTest, RejectsZeroHeadCount) {
@@ -46,7 +46,7 @@ TEST(ConfigTest, RejectsZeroHeadCount) {
     header[3] = 0;
 
     EXPECT_THROW(static_cast<void>(tiny_llm::parse_config(std::as_bytes(std::span{header}))),
-                 std::runtime_error);
+                 tiny_llm::LoadError);
 }
 
 TEST(ConfigTest, RejectsZeroVocabSize) {
@@ -54,7 +54,7 @@ TEST(ConfigTest, RejectsZeroVocabSize) {
     header[5] = 0;
 
     EXPECT_THROW(static_cast<void>(tiny_llm::parse_config(std::as_bytes(std::span{header}))),
-                 std::runtime_error);
+                 tiny_llm::LoadError);
 }
 
 TEST(ConfigTest, RejectsEmbeddingNotDivisibleByHeads) {
@@ -63,7 +63,7 @@ TEST(ConfigTest, RejectsEmbeddingNotDivisibleByHeads) {
     header[4] = 10; // keep head_count % kv_head_count valid, so only one check can fail
 
     EXPECT_THROW(static_cast<void>(tiny_llm::parse_config(std::as_bytes(std::span{header}))),
-                 std::runtime_error);
+                 tiny_llm::LoadError);
 }
 
 TEST(ConfigTest, RejectsHeadsNotDivisibleByKvHeads) {
@@ -71,7 +71,7 @@ TEST(ConfigTest, RejectsHeadsNotDivisibleByKvHeads) {
     header[4] = 5; // 12 query heads cannot be split evenly across 5 K/V heads
 
     EXPECT_THROW(static_cast<void>(tiny_llm::parse_config(std::as_bytes(std::span{header}))),
-                 std::runtime_error);
+                 tiny_llm::LoadError);
 }
 
 TEST(ConfigTest, ConfigIsSixtyFourBytes) {

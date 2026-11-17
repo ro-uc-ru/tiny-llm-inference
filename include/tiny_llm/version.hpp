@@ -4,7 +4,10 @@
 
 namespace tiny_llm {
 
-// The library version, as set in CMakeLists.txt (project(... VERSION ...)).
+/**
+ * @brief The library version, as set in CMakeLists.txt (`project(... VERSION ...)`).
+ * @return A view of a string literal, valid for the whole program.
+ */
 [[nodiscard]] std::string_view version() noexcept;
 
 } // namespace tiny_llm
