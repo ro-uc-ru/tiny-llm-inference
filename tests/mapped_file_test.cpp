@@ -100,6 +100,28 @@ TEST_F(MappedFileTest, MoveAssignmentTakesTheOtherMapping) {
     EXPECT_TRUE(source.bytes().empty());
 }
 
+/**
+ * Self-move assignment must leave the mapping untouched. Without the `this == &other` guard,
+ * release() would unmap it and then take the (now empty) bytes of `other`, which is the same
+ * object: the file would end up silently empty. No sanitizer catches that, only this test.
+ *
+ * `file = std::move(file)` does not compile (-Wself-move with -Werror), so the move goes
+ * through a second name for the same object, as `files[i] = std::move(files[j])` with
+ * `i == j` would in real code.
+ */
+TEST_F(MappedFileTest, SelfMoveAssignmentKeepsTheMapping) {
+    const auto path = write_temporary_file(small_contents);
+    tiny_llm::MappedFile file{path};
+    const std::byte* const mapped_address = file.bytes().data();
+    tiny_llm::MappedFile& same_file = file;
+
+    file = std::move(same_file);
+
+    EXPECT_EQ(file.bytes().data(), mapped_address);
+    EXPECT_EQ(file.bytes().size(), small_contents.size());
+    EXPECT_TRUE(std::ranges::equal(file.bytes(), small_contents));
+}
+
 TEST(MappedFileErrors, MissingFileThrows) {
     EXPECT_THROW(tiny_llm::MappedFile{"/nonexistent/tiny_llm/model.bin"}, tiny_llm::LoadError);
 }
