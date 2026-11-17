@@ -5,6 +5,7 @@
 #include <array>
 #include <cstddef>
 #include <span>
+#include <vector>
 
 namespace {
 
@@ -26,6 +27,15 @@ TEST(TensorTest, KeepsShapeAndData) {
     EXPECT_EQ(tensor.rows(), 3U);
     EXPECT_EQ(tensor.columns(), 4U);
     EXPECT_EQ(tensor.data().size(), 12U);
+}
+
+/** @brief Deliberate break: the span claims 13 values over a buffer of 12. */
+TEST(TensorTest, BreakOnPurposeReadsPastTheEnd) {
+    const std::vector<float> values(12, 1.0F);
+    const std::span<const float> too_long{values.data(), 13};
+    const tiny_llm::Tensor tensor{too_long, {13, 1}};
+
+    EXPECT_EQ(tensor.at(12, 0), 1.0F);
 }
 
 /** @brief A Tensor is a view: it points at the caller's memory instead of copying it. */
