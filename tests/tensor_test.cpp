@@ -28,6 +28,14 @@ TEST(TensorTest, KeepsShapeAndData) {
     EXPECT_EQ(tensor.data().size(), 12U);
 }
 
+/** @brief Deliberate break: the buffer is allocated with new[] and never deleted. */
+TEST(TensorTest, BreakOnPurposeLeaksItsBuffer) {
+    float* const values = new float[12]{};
+    const tiny_llm::Tensor tensor{std::span<const float>{values, 12}, {3, 4}};
+
+    EXPECT_EQ(tensor.at(0, 0), 0.0F);
+}
+
 /** @brief A Tensor is a view: it points at the caller's memory instead of copying it. */
 TEST(TensorTest, DoesNotCopyTheData) {
     const tiny_llm::Tensor tensor{matrix_values, {3, 4}};
