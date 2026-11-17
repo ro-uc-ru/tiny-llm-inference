@@ -10,12 +10,27 @@ on:
 
 jobs:
   build-and-test:
+    # One copy of the job per compiler. The check names become
+    # "build-and-test (clang)" and "build-and-test (gcc)".
+    name: build-and-test (${{ matrix.compiler }})
     runs-on: ubuntu-24.04
+    strategy:
+      # Let both compilers finish: a failure in one should not hide what the other says.
+      fail-fast: false
+      matrix:
+        include:
+          - compiler: clang
+            c_compiler: clang-18
+            cxx_compiler: clang++-18
+          # gcc 14, not the image default 13: libstdc++ ships <print> from gcc 14 on.
+          - compiler: gcc
+            c_compiler: gcc-14
+            cxx_compiler: g++-14
     env:
-      CC: clang
-      CXX: clang++
+      CC: ${{ matrix.c_compiler }}
+      CXX: ${{ matrix.cxx_compiler }}
     steps:
-      - name: Checkout the repository
+      - name: Check out the repository
         uses: actions/checkout@v7
 
       - name: Install CMake 4.3
@@ -37,3 +52,19 @@ jobs:
         run: ctest --preset debug-asan
         env:
           ASAN_OPTIONS: detect_leaks=1
+
+  format:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      # The same clang-format as on the Mac: versions disagree on details, and the image
+      # only ships up to 18.
+      - name: Install clang-format 23.1.5
+        run: pipx install "clang-format==23.1.5"
+
+      - name: Check formatting
+        run: |
+          clang-format --version
+          git ls-files '*.cpp' '*.hpp' | xargs clang-format --dry-run --Werror

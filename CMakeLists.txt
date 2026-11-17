@@ -50,7 +50,9 @@ target_compile_options(tiny_llm_warnings INTERFACE
     -Wold-style-cast
     -Wnon-virtual-dtor
     -Woverloaded-virtual
-    -Wdocumentation)  # Doxygen comments: @param names must match the parameters
+    # Doxygen comments: @param names must match the parameters. Clang only: gcc has no
+    # -Wdocumentation and rejects unknown -W options with an error.
+    $<$<CXX_COMPILER_ID:Clang,AppleClang>:-Wdocumentation>)
 
 # --- The engine library -------------------------------------------------------------------
 
