@@ -1,0 +1,60 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": { "major": 3, "minor": 28, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "ENGINE_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "debug-asan",
+      "displayName": "Debug + ASan + UBSan",
+      "description": "Development build: no optimization, debug info, sanitizers on",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENGINE_SANITIZE": "ON"
+      }
+    },
+    {
+      "name": "release",
+      "displayName": "Release",
+      "description": "Optimized build without sanitizers (benchmarks, leaks --atExit)",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "ENGINE_SANITIZE": "OFF"
+      }
+    }
+  ],
+  "buildPresets": [
+    { "name": "debug-asan", "configurePreset": "debug-asan" },
+    { "name": "release", "configurePreset": "release" }
+  ],
+  "testPresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error" }
+    },
+    {
+      "name": "debug-asan",
+      "inherits": "base",
+      "configurePreset": "debug-asan",
+      "environment": {
+        "UBSAN_OPTIONS": "print_stacktrace=1"
+      }
+    },
+    {
+      "name": "release",
+      "inherits": "base",
+      "configurePreset": "release"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+# Formatting is not a matter of taste once it is automatic: clangd applies this on save.
+BasedOnStyle: LLVM
+IndentWidth: 4
+ColumnLimit: 100
+PointerAlignment: Left # float* data, not float *data: the * belongs to the type
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+InsertBraces: true # every if/for gets braces, even one-liners
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: "^<tiny_llm/" # our headers first
+    Priority: 1
+  - Regex: "^<gtest/" # then third-party
+    Priority: 2
+  - Regex: "^<" # then the standard library
+    Priority: 3

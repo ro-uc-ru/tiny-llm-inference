@@ -12,3 +12,7 @@ compile_commands.json
 
 # macOS
 .DS_Store
+
+# Editor settings are personal (VS Code, CMake Tools, CodeLLDB)
+.vscode/
+build-rel 
