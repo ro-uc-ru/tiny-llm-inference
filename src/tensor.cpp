@@ -39,7 +39,9 @@ float Tensor::at(std::size_t row, std::size_t column) const {
     TINY_LLM_CHECK(row < rows_, std::format("row {} out of range, rows: {}", row, rows_));
     TINY_LLM_CHECK(column < columns_,
                    std::format("column {} out of range, columns: {}", column, columns_));
-    return data_[row * columns_ + column];
+    // Deliberate break: the offset squeezed into a 32-bit int.
+    const int offset = row * columns_ + column;
+    return data_[static_cast<std::size_t>(offset)];
 }
 
 /**
