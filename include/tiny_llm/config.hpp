@@ -1,9 +1,18 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <span>
 
 namespace tiny_llm {
+
+/**
+ * @brief Size of the llama2.c checkpoint header: 7 `int32` fields, 28 bytes.
+ *
+ * A fact of the file format, not of any model: parse_config reads these bytes and
+ * map_weights starts right after them, so both share this one definition.
+ */
+inline constexpr std::size_t header_size_in_bytes = 7 * sizeof(std::int32_t);
 
 /**
  * @brief The model hyperparameters stored in the header of a llama2.c checkpoint.

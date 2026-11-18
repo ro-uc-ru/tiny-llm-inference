@@ -14,9 +14,6 @@ namespace {
 static_assert(std::endian::native == std::endian::little,
               "the llama2.c checkpoint format is little-endian");
 
-constexpr std::size_t header_field_count = 7;
-constexpr std::size_t header_size_in_bytes = header_field_count * sizeof(std::int32_t); // 28
-
 /**
  * @brief Reads the little-endian int32 stored at byte offset `offset`.
  *
