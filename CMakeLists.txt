@@ -63,7 +63,9 @@ add_library(tiny_llm
     src/check.cpp
     src/tensor.cpp
     src/weights.cpp
-    src/kernels.cpp)
+    src/kernels.cpp
+    src/run_state.cpp
+    src/transformer.cpp)
 
 # PUBLIC: our own sources and anyone who links tiny_llm can #include <tiny_llm/...>.
 target_include_directories(tiny_llm PUBLIC include)
@@ -105,7 +107,9 @@ if(ENGINE_BUILD_TESTS)
         tests/check_test.cpp
         tests/tensor_test.cpp
         tests/weights_test.cpp
-        tests/kernels_test.cpp)
+        tests/kernels_test.cpp
+        tests/run_state_test.cpp
+        tests/transformer_test.cpp)
 
     # gtest_main provides main(); the test files only hold TEST(...) blocks.
     target_link_libraries(tiny_llm_tests PRIVATE tiny_llm tiny_llm_warnings GTest::gtest_main)
