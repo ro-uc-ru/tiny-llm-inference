@@ -3,6 +3,7 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -10,6 +11,7 @@
 #include <filesystem>
 #include <fstream>
 #include <ios>
+#include <iterator>
 #include <string>
 #include <type_traits>
 
@@ -87,6 +89,52 @@ TEST(TransformerModel, Stories110MLoads) {
     EXPECT_EQ(model.config().embedding_size, 768u);
     EXPECT_EQ(model.config().layer_count, 12u);
     EXPECT_EQ(model.config().vocab_size, 32000u);
+}
+
+/**
+ * @brief Two forward calls in a row with stories110M, against the NumPy forward of phase 1.
+ *
+ * Token 1 (BOS) at position 0, then token 9038 ("Once") at position 1. The reference values
+ * come from fase-2-motor-cpp/bloque-2/logits_referencia.py in the learning repo. The second
+ * call reads the cache the first one left: with a wrong cache_offset, position 0 still
+ * passes (it writes and reads with the same wrong formula) and position 1 fails.
+ *
+ * The tolerance is 1e-4: NumPy adds the products in another order, and the largest error
+ * measured is 1e-5. A real bug gives errors of 0.1 or more.
+ */
+TEST(TransformerModel, Stories110MForward) {
+    const char* model_path = std::getenv("TINY_LLM_MODEL_PATH");
+    if (model_path == nullptr) {
+        GTEST_SKIP() << "TINY_LLM_MODEL_PATH is not set";
+    }
+    tiny_llm::Transformer model{model_path};
+    constexpr float logits_tolerance = 1e-4F;
+
+    const std::array<float, 5> expected_at_position_0{-8.747768F, 1.456615F, -8.747845F, -8.747747F,
+                                                      -8.747827F};
+    const std::span<const float> logits_at_position_0 = model.forward(1, 0);
+    ASSERT_EQ(logits_at_position_0.size(), 32000u);
+    for (std::size_t index = 0; index < expected_at_position_0.size(); index++) {
+        EXPECT_NEAR(logits_at_position_0[index], expected_at_position_0[index], logits_tolerance)
+            << "position 0, logit " << index;
+    }
+    EXPECT_EQ(
+        std::distance(logits_at_position_0.begin(),
+                      std::max_element(logits_at_position_0.begin(), logits_at_position_0.end())),
+        9038);
+
+    // From here on, logits_at_position_0 must not be read: the next call overwrites it.
+    const std::array<float, 5> expected_at_position_1{-10.438682F, -0.173467F, -10.438671F,
+                                                      -10.438544F, -10.438519F};
+    const std::span<const float> logits_at_position_1 = model.forward(9038, 1);
+    for (std::size_t index = 0; index < expected_at_position_1.size(); index++) {
+        EXPECT_NEAR(logits_at_position_1[index], expected_at_position_1[index], logits_tolerance)
+            << "position 1, logit " << index;
+    }
+    EXPECT_EQ(
+        std::distance(logits_at_position_1.begin(),
+                      std::max_element(logits_at_position_1.begin(), logits_at_position_1.end())),
+        2501);
 }
 
 /** @brief Skipped unless TINY_LLM_TINYLLAMA_PATH points to tinyllama.bin (GQA, own classifier). */
