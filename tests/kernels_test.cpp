@@ -329,3 +329,70 @@ TEST(KernelsDeathTest, RotateRopeRejectsPartialHead) {
 }
 
 } // namespace
+
+/**
+ * @brief The toy of step 4: keys (1, 0) and (0, 1), values (1, 2) and (3, 4), query (1, 0).
+ *
+ * Scores (1/√2, 0) = (0.707107, 0); softmax (0.669761, 0.330239);
+ * output 0.669761 · (1, 2) + 0.330239 · (3, 4) = (1.660478, 2.660478).
+ */
+TEST(Attend, ToyExample) {
+    const std::vector<float> query{1.0F, 0.0F};
+    const std::vector<float> keys{1.0F, 0.0F, 0.0F, 1.0F};
+    const std::vector<float> values{1.0F, 2.0F, 3.0F, 4.0F};
+    std::vector<float> scores(2);
+    std::vector<float> output(2);
+
+    tiny_llm::attend(output, query, keys, values, scores, 2, 2);
+
+    EXPECT_NEAR(scores[0], 0.669761F, tolerance);
+    EXPECT_NEAR(scores[1], 0.330239F, tolerance);
+    EXPECT_NEAR(output[0], 1.660478F, tolerance);
+    EXPECT_NEAR(output[1], 2.660478F, tolerance);
+}
+
+/**
+ * @brief The same toy with a second KV head in between (kv_stride 4), filled with 9s.
+ *
+ * Layout of the cache: position 0 = {head 0: 1 0, head 1: 9 9}, position 1 = {0 1, 9 9}.
+ * If the stride were ignored, the 9s would enter the scores and the output would change.
+ */
+TEST(Attend, SkipsTheOtherKvHeads) {
+    const std::vector<float> query{1.0F, 0.0F};
+    const std::vector<float> keys{1.0F, 0.0F, 9.0F, 9.0F, 0.0F, 1.0F, 9.0F, 9.0F};
+    const std::vector<float> values{1.0F, 2.0F, 9.0F, 9.0F, 3.0F, 4.0F, 9.0F, 9.0F};
+    std::vector<float> scores(2);
+    std::vector<float> output(2);
+
+    tiny_llm::attend(output, query, keys, values, scores, 2, 4);
+
+    EXPECT_NEAR(output[0], 1.660478F, tolerance);
+    EXPECT_NEAR(output[1], 2.660478F, tolerance);
+}
+
+/** @brief At position 0 there is one key: its weight is 1 and the output is its value. */
+TEST(Attend, OnePositionCopiesItsValue) {
+    const std::vector<float> query{1.0F, 0.0F};
+    const std::vector<float> keys{0.5F, -3.0F};
+    const std::vector<float> values{7.0F, 8.0F};
+    std::vector<float> scores{-1.0F, -1.0F};
+    std::vector<float> output{100.0F, 100.0F};
+
+    tiny_llm::attend(output, query, keys, values, scores, 1, 2);
+
+    EXPECT_NEAR(output[0], 7.0F, tolerance);
+    EXPECT_NEAR(output[1], 8.0F, tolerance);
+    EXPECT_NEAR(scores[1], -1.0F, tolerance); // beyond position_count: untouched
+}
+
+/** @brief Two positions need (2 − 1) · 2 + 2 = 4 floats of keys; 3 is a bug in the caller. */
+TEST(AttendDeathTest, RejectsKeysThatAreTooShort) {
+    const std::vector<float> query{1.0F, 0.0F};
+    const std::vector<float> keys{1.0F, 0.0F, 0.0F};
+    const std::vector<float> values{1.0F, 2.0F, 3.0F, 4.0F};
+    std::vector<float> scores(2);
+    std::vector<float> output(2);
+
+    EXPECT_DEATH(tiny_llm::attend(output, query, keys, values, scores, 2, 2),
+                 "keys has 3 and values 4 floats, 2 positions need 4");
+}

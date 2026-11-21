@@ -112,4 +112,29 @@ void softmax(std::span<float> values);
  */
 void rotate_rope(std::span<float> vector, std::size_t position, std::size_t head_size);
 
+/**
+ * @brief Attention of one query head over positions 0 … position_count − 1 of one KV head.
+ *
+ * `score[t] = query · key[t] / sqrt(head_size)`, then softmax over the scores, then
+ * `output = sum over t of score[t] * value[t]`. The head size is `query.size()`.
+ *
+ * `keys` and `values` start at the chosen KV head of position 0 in one layer's cache. The
+ * key of position t starts `t * kv_stride` floats further on: in the cache, the other KV
+ * heads of position 0 sit between position 0 and position 1 of this head. The forward pass
+ * calls it once per query head, so it is tested on its own, like the other kernels.
+ *
+ * Sizes that do not fit are a bug in the caller and abort with TINY_LLM_CHECK.
+ *
+ * @param output Overwritten with the mixed values; `query.size()` floats.
+ * @param query The query of this head, already rotated by RoPE; not modified.
+ * @param keys The cache from this KV head of position 0 on; not modified.
+ * @param values Same layout as `keys`; not modified.
+ * @param scores Work buffer; at least `position_count` floats, the first ones overwritten.
+ * @param position_count How many positions to attend to: the current position plus one.
+ * @param kv_stride Floats from one position to the next in the cache: kv_head_count * head_size.
+ */
+void attend(std::span<float> output, std::span<const float> query, std::span<const float> keys,
+            std::span<const float> values, std::span<float> scores, std::size_t position_count,
+            std::size_t kv_stride);
+
 } // namespace tiny_llm

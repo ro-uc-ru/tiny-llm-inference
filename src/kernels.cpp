@@ -130,4 +130,53 @@ void rotate_rope(std::span<float> vector, std::size_t position, std::size_t head
     }
 }
 
+void attend(std::span<float> output, std::span<const float> query, std::span<const float> keys,
+            std::span<const float> values, std::span<float> scores, std::size_t position_count,
+            std::size_t kv_stride) {
+    const std::size_t head_size = query.size();
+    TINY_LLM_CHECK(position_count > 0, "position_count is 0: there is nothing to attend to");
+    TINY_LLM_CHECK(output.size() == head_size,
+                   std::format("output has {} values, query has {}", output.size(), head_size));
+    TINY_LLM_CHECK(
+        head_size <= kv_stride,
+        std::format("kv_stride {} is shorter than one head of {}", kv_stride, head_size));
+    TINY_LLM_CHECK(scores.size() >= position_count,
+                   std::format("scores has {} values, {} positions need one each", scores.size(),
+                               position_count));
+    // The last position needs only one head, not a whole stride.
+    const std::size_t floats_needed = (position_count - 1) * kv_stride + head_size;
+    TINY_LLM_CHECK(keys.size() >= floats_needed && values.size() >= floats_needed,
+                   std::format("keys has {} and values {} floats, {} positions need {}",
+                               keys.size(), values.size(), position_count, floats_needed));
+
+    // Only the first position_count scores belong to this call; the rest of the buffer is
+    // left as it is and must not enter the softmax.
+    const std::span<float> used_scores = scores.subspan(0, position_count);
+    const float scale = 1.0f / std::sqrt(static_cast<float>(head_size));
+
+    // 1. One score per position: the query against the key of that position.
+    for (std::size_t position = 0; position < position_count; position++) {
+        const std::span<const float> key = keys.subspan(position * kv_stride, head_size);
+        float dot_product = 0.0f;
+        for (std::size_t index = 0; index < head_size; index++) {
+            dot_product += query[index] * key[index];
+        }
+        used_scores[position] = dot_product * scale;
+    }
+
+    // 2. Scores into weights that add up to 1.
+    softmax(used_scores);
+
+    // 3. The output is the mix of the values, each one weighted by its position's score.
+    for (auto& value : output) {
+        value = 0.0f;
+    }
+    for (std::size_t position = 0; position < position_count; position++) {
+        const std::span<const float> value = values.subspan(position * kv_stride, head_size);
+        for (std::size_t index = 0; index < head_size; index++) {
+            output[index] += used_scores[position] * value[index];
+        }
+    }
+}
+
 } // namespace tiny_llm
