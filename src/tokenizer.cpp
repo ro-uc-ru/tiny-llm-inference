@@ -90,8 +90,8 @@ Tokenizer::Tokenizer(const std::filesystem::path& path, std::size_t vocab_size) 
         const float score = read_float();
         const std::int32_t length = read_int32();
         if (length < 0) {
-            throw LoadError(std::format("tokenizer.bin: token {} has a negative length, {}",
-                                        token, length));
+            throw LoadError(
+                std::format("tokenizer.bin: token {} has a negative length, {}", token, length));
         }
         const auto byte_count = static_cast<std::size_t>(length);
         require(byte_count);
@@ -206,8 +206,8 @@ std::vector<std::size_t> Tokenizer::encode(std::string_view text, bool add_begin
  * @return A view valid while the tokenizer lives.
  */
 std::string_view Tokenizer::decode(std::size_t previous_token, std::size_t token) const {
-    TINY_LLM_CHECK(token < pieces_.size(), std::format("token {} is outside the vocabulary of {}",
-                                                       token, pieces_.size()));
+    TINY_LLM_CHECK(token < pieces_.size(),
+                   std::format("token {} is outside the vocabulary of {}", token, pieces_.size()));
 
     if (token >= first_byte_token && token < first_byte_token + byte_values_.size()) {
         return std::string_view{&byte_values_[token - first_byte_token], 1};

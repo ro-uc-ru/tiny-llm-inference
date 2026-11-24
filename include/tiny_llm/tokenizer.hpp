@@ -53,7 +53,8 @@ class Tokenizer {
      * @param add_begin_token Whether to put begin_token first.
      * @return The tokens of `text`.
      */
-    [[nodiscard]] std::vector<std::size_t> encode(std::string_view text, bool add_begin_token) const;
+    [[nodiscard]] std::vector<std::size_t> encode(std::string_view text,
+                                                  bool add_begin_token) const;
 
     /**
      * @brief The text of `token`, with llama2.c's two rules.

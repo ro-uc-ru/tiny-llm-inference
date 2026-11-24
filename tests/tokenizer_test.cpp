@@ -34,12 +34,12 @@ std::vector<ToyToken> toy_vocabulary() {
     for (int byte_value = 0; byte_value < 256; ++byte_value) {
         tokens.push_back({std::format("<0x{:02X}>", byte_value), 0.0f});
     }
-    tokens.push_back({" ", -100.0f});  // 259
-    tokens.push_back({"h", -100.0f});  // 260
-    tokens.push_back({"i", -100.0f});  // 261
-    tokens.push_back({" h", -1.0f});   // 262
-    tokens.push_back({"hi", -2.0f});   // 263
-    tokens.push_back({" hi", -3.0f});  // 264
+    tokens.push_back({" ", -100.0f}); // 259
+    tokens.push_back({"h", -100.0f}); // 260
+    tokens.push_back({"i", -100.0f}); // 261
+    tokens.push_back({" h", -1.0f});  // 262
+    tokens.push_back({"hi", -2.0f});  // 263
+    tokens.push_back({" hi", -3.0f}); // 264
     return tokens;
 }
 
@@ -182,14 +182,14 @@ TEST(TokenizerModel, EncodeMatchesTheReference) {
          {1, 3439, 17632, 1925, 29892, 278, 6368, 310, 14215, 537, 5922, 393, 29871}},
         {"A brief message congratulating the team on the launch:\n\n        Hi everyone,\n\n"
          "        I just ",
-         {1,     319,   11473, 2643, 378,   629, 271, 18099, 278, 3815, 373, 278, 6826,
-          29901, 13,    13,    4706, 6324,  14332, 29892, 13,  13,    4706, 306, 925, 29871}},
+         {1,     319, 11473, 2643, 378,  629,   271,   18099, 278, 3815, 373, 278, 6826,
+          29901, 13,  13,    4706, 6324, 14332, 29892, 13,    13,  4706, 306, 925, 29871}},
         {"Translate English to French:\n\n        sea otter => loutre de mer\n        peppermint "
          "=> menthe poivrée\n        plush girafe => girafe peluche\n        cheese =>",
-         {1,    4103, 9632, 4223, 304,  5176, 29901, 13,   13,   4706,  7205, 4932,  357,
-          1149, 301,  449,  276,  316,  2778, 13,    4706, 1236, 407,   837,  524,   1149,
-          6042, 354,  772,  440,  29878, 1318, 13,   4706, 715,  1878,  330,  3055,  1725,
-          1149, 330,  3055, 1725, 4639, 28754, 13,   4706, 923,  968,   1149}},
+         {1,    4103, 9632, 4223, 304,   5176,  29901, 13,   13,   4706, 7205, 4932, 357,
+          1149, 301,  449,  276,  316,   2778,  13,    4706, 1236, 407,  837,  524,  1149,
+          6042, 354,  772,  440,  29878, 1318,  13,    4706, 715,  1878, 330,  3055, 1725,
+          1149, 330,  3055, 1725, 4639,  28754, 13,    4706, 923,  968,  1149}},
         {"hi", {1, 7251}},
         {"🦙", {1, 29871, 243, 162, 169, 156}},
         {"canción", {1, 24174}},

@@ -14,7 +14,8 @@ namespace tiny_llm {
  * | ----------- | --------------- | ----------------------------------------------------------- |
  * | 0           | ignored         | The token with the highest logit; draws no random number.   |
  * | > 0         | 0 or >= 1       | logits / temperature, softmax, multinomial with one coin.   |
- * | > 0         | between 0 and 1 | The same, but only among the most likely tokens summing top_p. |
+ * | > 0         | between 0 and 1 | The same, but only among the most likely tokens summing top_p.
+ * |
  *
  * The coin comes from the xorshift generator of llama2.c's run.c, not from `<random>`: with the
  * same seed it gives the same numbers, so the generated text can be compared with run.c at a
@@ -57,8 +58,8 @@ class Sampler {
   private:
     /** @brief A token and its probability, for sorting in top-p (run.c's ProbIndex). */
     struct Candidate {
-        std::size_t token;   /**< The index into the probabilities. */
-        float probability;   /**< Its probability after softmax. */
+        std::size_t token; /**< The index into the probabilities. */
+        float probability; /**< Its probability after softmax. */
     };
 
     /**

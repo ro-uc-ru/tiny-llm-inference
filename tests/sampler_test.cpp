@@ -43,8 +43,7 @@ TEST(Sampler, TopPSortsAndCutsTheNucleus) {
 
     for (const std::size_t expected_token : expected_tokens) {
         // log of the probabilities: with temperature 1, softmax gives them back.
-        std::vector<float> logits{std::log(0.05f), std::log(0.15f), std::log(0.3f),
-                                  std::log(0.5f)};
+        std::vector<float> logits{std::log(0.05f), std::log(0.15f), std::log(0.3f), std::log(0.5f)};
         EXPECT_EQ(sampler.sample(logits), expected_token);
     }
 }
