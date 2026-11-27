@@ -67,7 +67,8 @@ add_library(tiny_llm
     src/run_state.cpp
     src/transformer.cpp
     src/sampler.cpp
-    src/tokenizer.cpp)
+    src/tokenizer.cpp
+    src/options.cpp)
 
 # PUBLIC: our own sources and anyone who links tiny_llm can #include <tiny_llm/...>.
 target_include_directories(tiny_llm PUBLIC include)
@@ -113,7 +114,8 @@ if(ENGINE_BUILD_TESTS)
         tests/run_state_test.cpp
         tests/transformer_test.cpp
         tests/sampler_test.cpp
-        tests/tokenizer_test.cpp)
+        tests/tokenizer_test.cpp
+        tests/options_test.cpp)
 
     # gtest_main provides main(); the test files only hold TEST(...) blocks.
     target_link_libraries(tiny_llm_tests PRIVATE tiny_llm tiny_llm_warnings GTest::gtest_main)
